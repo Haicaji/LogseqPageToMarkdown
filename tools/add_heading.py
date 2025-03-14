@@ -7,41 +7,122 @@ class add_heading:
         self.arguments = arguments
 
     def run(self):
-        pattern_heading = r'heading::\s+(true|false)'
-        for i in range(len(self.content)):
-            if re.search(pattern_heading, self.content[i]):
-                temp = self.content_new[-1].replace("\t", "")
-                temp_ = re.sub(r"^\-", "#", temp, count=1)
-                self.content_new[-1] = self.content_new[-1].replace(temp, temp_)
+        # 将一个块合并为一行
+        temp_content = []
+        for line in self.content:
+            if line.replace('\t', '').startswith("-"):
+                temp_content.append(line)
             else:
-                self.content_new.append(self.content[i])
-
-        self.content = self.content_new
-        self.content_new = []
-
-        beforce_title_count = 0
-        for i in range(len(self.content)):
-            indent_count = self.count_indent(self.content[i])
-            if re.search(r'^#', self.content[i].replace("\t", "")):
-                beforce_title_count += 1
-                self.content[i] = self.content[i].replace(indent_count*"\t"+"#", "#"*(indent_count+1))
-                self.content_new.append(self.content[i])
-                self.content_new.append("\n")
+                if len(temp_content) > 0:
+                    temp_content[-1] = temp_content[-1] + line
+                else:
+                    temp_content.append(line)
+                    Exception("Error: The first line is not start with `-`")
+        # 删除空白行
+        self.content = []
+        for line in temp_content:
+            if '-' not in line:
+                continue
             else:
-                if beforce_title_count > indent_count:
-                    beforce_title_count -= 1
-                self.content[i] = self.content[i].replace(beforce_title_count*"\t", "", 1)
-                self.content_new.append(self.content[i])
+                self.content.append(line)
+        # 处理标题
+        for i in range(self.content.__len__()):
+            line = self.content[i]
+            self.content[i] = self.deal_heading(line, self.count_indent(line))
+        # 块级缩进处理
+        delete_indent_count = -1
+        for i in range(self.content.__len__()):
+            if self.content[i][0] == '#':
+                delete_indent_count = -1
+            else:
+                if delete_indent_count == -1:
+                    delete_indent_count = self.count_indent(self.content[i])
+                    self.content[i] = self.content[i].replace('\t', '', delete_indent_count)
+                else:
+                    if delete_indent_count <= self.count_indent(self.content[i]):
+                        self.content[i] = self.content[i].replace('\t', '', delete_indent_count)
+                    else:
+                        delete_indent_count = self.count_indent(self.content[i])
+                        self.content[i] = '\n---\n\n' + self.content[i].replace('\t', '', delete_indent_count)
+        # 块间处理
+        for i in range(self.content.__len__()):
+            # 使用正则判断是否有代码段
+            # if re.search(r'```.+```', self.content[i].replace('\n', '')):
+            #     return_text = ''
+            #     indent = self.count_indent(self.content[i])
+            #     text = self.content[i].split('\n')[1:-1]
+            #     for j in range(text.__len__()):
+            #         t = text[j]
+            #         text[j] = '\t'*indent + t.lstrip('\t').replace('  ', '', 1)+'\n'
+            #     self.content[i] = ''
+            #     for t in text:
+            #         self.content[i] += t
+            #     continue
+            # # 使用正则判断是否有表格
+            # if re.search(r'\|.+?\|', self.content[i].replace('\n', '')):
+            #     return_text = ''
+            #     indent = self.count_indent(self.content[i])
+            #     text = self.content[i].split('\n')
+            #     for j in range(text.__len__()):
+            #         t = text[j]
+            #         text[j] = '\t'*indent + t.lstrip('\t').replace('  ', '', 1)+'\n'
+            #     self.content[i] = ''
+            #     for t in text:
+            #         self.content[i] += t
+            #     continue
+            if self.content[i].replace('\t', '').startswith('-'):
+                indent = self.count_indent(self.content[i])
+                text = self.content[i].split('\n')
+                for j in range(text.__len__()):
+                    text[j] = '\t'*indent + text[j].lstrip('\t')+'\n'
+                if text[0].replace('\n', '').replace('\t', '') == '-':
+                    text[0] = text[0][:-1]
+                    text[1] = text[1].lstrip('\t')[1:]
+                self.content[i] = ''
+                for t in text:
+                    self.content[i] += t
+
+        for line in self.content:
+            self.content_new.append(line)
     
-    # 判断缩进数量
+    def deal_heading(self, text, indent_count):
+        if "heading:: true" in text:
+            text = text.split("\n")[:-1]
+            if "heading:: true" not in text[-1].replace('\t', ''):
+                raise Exception("Error: The last line is not `heading:: true`")
+            text = text[0]+'\n'
+            text = re.sub(r'^\t+', '', text)
+            text = re.sub(r'\-', '#'*(indent_count+1), text, 1)
+            return text+'\n'
+        else:
+            return text
+
+    # 获取 `-` 前 `\t` 数量
     def count_indent(self, line):
         count = 0
-        for char in line:
-            if char == "\t":
+        for s in line:
+            if s == '\t':
+
                 count += 1
-            else:
+            elif s == '-':
                 break
+            else:
+                raise Exception("Error: The line is not start with `-`")
         return count
 
     def output(self):
         return self.content_new
+    
+if __name__ == "__main__":
+    input_md = "input.md"
+    output_md = "output.md"
+
+    with open(input_md, 'r') as file:
+        content = file.readlines()
+
+    tool_instance = add_heading(content, None)
+    tool_instance.run()
+    content_new = tool_instance.output()
+
+    with open(output_md, 'w', encoding='utf-8') as file:
+        file.writelines(content_new)

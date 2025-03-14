@@ -8,9 +8,9 @@ class delete_properties:
 
     def run(self):
         pattern_id = r'id::\s+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-        pattern_color = r'background-color::\s+(red|yellow|pink|green|blue|purple|gray)'
-        pattern_publish  = r'public::\s+(true|false)'
-        pattern_collapsed = r'collapsed:: true'
+        pattern_color = r'background-color::\s+(red|yellow|pink|green|blue|purple|gray)' # 背景颜色
+        pattern_publish  = r'public::\s+(true|false)' # 公开
+        pattern_collapsed = r'collapsed:: true' # 折叠
         pattern_list = [pattern_id, pattern_color, pattern_publish, pattern_collapsed]
         for line in self.content:
             flag = False

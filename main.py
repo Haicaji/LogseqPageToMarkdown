@@ -24,17 +24,16 @@ def main():
     content = read_file(input_md)
     
     tool_dict = {
-        "delete_properties": [True, None],
+        "delete_properties": [True, None], # 删除Logseq属性
         "add_heading": [True, None],
-        "delete_unuse_space": [True, None],
-        "delete_alone_hyphen": [True, None],
+        "change_image_link": [True, {"link_father": "https://haicaji.github.io"}],
     }
 
     for tool_name, [use, arguments] in tool_dict.items():
         if use:
             content = use_tool(content, tool_name, arguments)
 
-    write_file(output_md, content)
+        write_file(output_md, content)
 
 if __name__ == "__main__":
     main()
