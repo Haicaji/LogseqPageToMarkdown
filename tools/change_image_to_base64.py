@@ -14,16 +14,14 @@ class change_image_to_base64:
             if re.search(r'(\!\[.*\]\()(\.\.)(\/assets\/.*\))', line):
                 if re.search(r'\{:height \d+, :width \d+\}', line):
                     line = re.sub(r'\{:height \d+, :width \d+\}', '', line)
-                pattern = r'([\t ]*)-\s*!\[(.*?)\]\(\.\./(.*?)\)([\n\t ]*)'
-                # 替换逻辑
+
+                pattern = r'!\[(.*?)\]\(\.\./(.*?)\)'
                 def replacer(match):
-                    leading_ws = match.group(1)  # \t 可能存在
-                    alt_text = match.group(2)    # 原 alt text
-                    relative_path = match.group(3)  # 相对路径去掉 ../
-                    trailing_ws = match.group(4)  # \n 或 空格等
-                    return f"{leading_ws}- ![{alt_text}][{relative_path}]{trailing_ws}"
-                # 替换并返回结果
-                line =  re.sub(pattern, replacer, line)
+                    alt_text = match.group(1)          # alt text
+                    relative_path = match.group(2)     # 去掉 ../ 的路径
+                    return f'![{alt_text}][{relative_path}]'
+                line = re.sub(pattern, replacer, line)
+                
                 image_path = re.search(r'!\[.*?\]\[(.*?)\]', line).group(1)
                 self.images_base64_content.append(self.imageToBase64(image_path))
             self.content_new.append(line)
