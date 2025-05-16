@@ -46,30 +46,6 @@ class add_heading:
                         self.content[i] = '\n---\n\n' + self.content[i].replace('\t', '', delete_indent_count)
         # 块间处理
         for i in range(self.content.__len__()):
-            # 使用正则判断是否有代码段
-            # if re.search(r'```.+```', self.content[i].replace('\n', '')):
-            #     return_text = ''
-            #     indent = self.count_indent(self.content[i])
-            #     text = self.content[i].split('\n')[1:-1]
-            #     for j in range(text.__len__()):
-            #         t = text[j]
-            #         text[j] = '\t'*indent + t.lstrip('\t').replace('  ', '', 1)+'\n'
-            #     self.content[i] = ''
-            #     for t in text:
-            #         self.content[i] += t
-            #     continue
-            # # 使用正则判断是否有表格
-            # if re.search(r'\|.+?\|', self.content[i].replace('\n', '')):
-            #     return_text = ''
-            #     indent = self.count_indent(self.content[i])
-            #     text = self.content[i].split('\n')
-            #     for j in range(text.__len__()):
-            #         t = text[j]
-            #         text[j] = '\t'*indent + t.lstrip('\t').replace('  ', '', 1)+'\n'
-            #     self.content[i] = ''
-            #     for t in text:
-            #         self.content[i] += t
-            #     continue
             if self.content[i].replace('\t', '').startswith('-'):
                 indent = self.count_indent(self.content[i])
                 text = self.content[i].split('\n')
